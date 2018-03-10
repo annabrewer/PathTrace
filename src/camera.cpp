@@ -152,11 +152,45 @@ Ray Camera::generate_ray(double x, double y) const {
   // compute position of the input sensor sample coordinate on the
   // canonical sensor plane one unit away from the pinhole.
   // Note: hFov and vFov are in degrees.
-  // 
 
-  return Ray(Vector3D(), Vector3D());
+  //c2w[0] c2w[1] -> basis vectors or something?? :o
 
+  //first vector in ray is origin, second is direction
+
+  Vector3D bottomLeft = Vector3D(0 - tan(radians(hFov)*.5), 0 - tan(radians(vFov)*.5),-1);
+  Vector3D topRight = Vector3D( tan(radians(hFov)*.5),  tan(radians(vFov)*.5),-1);
+
+  //lerp x and y coordinates to get ray's direction in camera space
+  //lol this is a point though why is it a direction
+  double dirX = ((x * 2) - 1)*tan(radians(hFov)*0.5);//bottomLeft.x * x + topRight.x * (1 - x); /// (screenW*1.0); //lerp(bottomLeft.x, topRight.x, x);
+  double dirY = ((y * 2) - 1)*tan(radians(vFov)*0.5);//bottomLeft.y * y + topRight.y * (1 - y); /// (screenH*1.0);//lerp(bottomLeft.y, topRight.y, y);
+  double dirZ = -1.0;
+
+  //printf("DIR %f %f %f \n", dirX, dirY, dirZ);
+
+  const Vector3D dir = Vector3D(dirX, dirY, dirZ);
+
+  //printf("DIR %f %f %f \n", dir.x, dir.y, dir.z);
+
+  //Vector3D distTrans = Vector3D(dist * c2w[0], dist * c2w[1], dist * c2w[2]).normalize();;
+
+  Vector3D dirTrans = c2w * dir;
+
+  dirTrans.normalize();
+
+  //printf("DIR TRANS %f %f %f \n", dirTrans.x, dirTrans.y, dirTrans.z);
+
+  //need 'this->' ??
+  Ray r = Ray(this->pos, dirTrans);
+  //dot vs arrow difference?
+  r.min_t = nClip;
+  r.max_t = fClip;
+  return r;
 }
+
+/*double Camera::lerp(double a, double b, double w) {
+  return (w * a + (1-w) * b);
+}*/
 
 
 } // namespace CGL

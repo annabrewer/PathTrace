@@ -52,12 +52,12 @@ namespace CGL { namespace StaticScene {
     * \return true if the given ray intersects with the triangle,
               false otherwise
     */
-  bool intersect(const Ray& r, Intersection* i) const;
+  bool intersect(const Ray& r, Intersection* isect) const;
 
   /**
    * Get BSDF.
-   * In the case of a triangle, the surface material BSDF is stored in 
-   * the mesh it belongs to. 
+   * In the case of a triangle, the surface material BSDF is stored in
+   * the mesh it belongs to.
    */
   BSDF* get_bsdf() const { return mesh->get_bsdf(); }
 

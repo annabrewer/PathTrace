@@ -88,6 +88,8 @@ class Camera {
    */
   Ray generate_ray(double x, double y) const;
 
+  //double lerp(double a, double b, double w);
+
  private:
   // Computes pos, screenXDir, screenYDir from target, r, phi, theta.
   void compute_position();

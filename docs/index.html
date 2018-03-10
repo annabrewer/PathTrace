@@ -9,48 +9,220 @@
       padding-left: 100px;  
     }  
   </style> 
-<title>Your Name  |  CS 184</title>
+<title>Anna Brewer |  CS 184</title>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rel="stylesheet" type="text/css" href="style.css" media="screen" />
 </head>
 <body>
 <br />
 <h1 align="middle">Assignment 3: PathTracer</h1>
-    <h2 align="middle">Your Name</h2>
+    <h2 align="middle">Anna Brewer</h2>
 
     <div class="padded">
-        <p>Use this section to write an overview of the assignment. All of the text in your write-up should be <em>in your own words</em>. If you need to add additional HTML features to this document, you can search the <a href="http://www.w3schools.com/">http://www.w3schools.com/</a> website for instructions. To edit the HTML, you can just copy and paste existing chunks and fill in the text and image file names appropriately.</p>
-        <o>The website writeup is intended to be a self-contained walkthrough of the assignment: we want this to be a piece of work which showcases your understanding of relevant concepts through both mesh images as well as written explanations about what you did to complete each part of the assignment. Try to be as clear and organized as possible when writing about your own output files or extensions to the assignment. We want to understand what you've achieved and how you've done it!</p> 
-        <p>If you are well-versed in web development, feel free to ditch this template and make a better looking page. Just make sure that you include all the components as we've laid them out here. </p>
+        <p>In this project, I implemented a path tracing algorithm which simulates the interaction of light rays with primitive shapes (spheres and
+        triangles), to allow for the rendering of 3D meshes with realistic lighting. The algorithm accounts for both direct lighting and indirect (reflected) lighting.
+        To speed up the rendering process, I implemented several optimizations, including a bounding volume hierarchy (BVH) which utilizes the Möller Trumbore algorithm
+        for ray-box intersection, Monte Carlo integration to approximate continuous light by casting random rays, and adaptive sampling to avoid taking unnecessary samples that
+        don't drastically change the picture. </p>
 
     <h2 align="middle">Part 1: Ray Generation and Intersection</h2>
-        <p>Describe what you did in Part 1. etc...</p>
+        <p>In this part, I set up basic ray generation and allowed for the intersection of rays with spheres and triangles, including the calculation of normals to allow for simple, fast shading.
+        </p>
         <div align="center">
             <table style="width=100%">
                 <tr>
                     <td align="middle">
-                    <img src="images/example_image.png" width="480px" />
-                    <figcaption align="middle">Results Caption: my bunny is the bounciest bunny</figcaption>
+                    <img src="images/cow.png" width="800px" />
+                </tr>
+                <tr>
+                    <td align="middle">
+                        <img src="images/teapot.png" width="800px" />
                 </tr>
             </table>
         </div>
-        <p>Here is an example of how to include a simple formula:</p>
+        <!--<p>Here is an example of how to include a simple formula:</p>
         <p align="middle"><pre align="middle">a^2 + b^2 = c^2</pre></p>
         <p>or, alternatively, you can include an SVG image of a LaTex formula.</p>
-        <p>This time it's your job to copy-paste in the rest of the sections :)</p>
+        <p>This time it's your job to copy-paste in the rest of the sections :)</p>-->
 
+        <h2 align="middle">Part 2: Bounding Volume Hierarchy</h2>
+        <p> In this section I recursively generated a bounding volume hierarchy consisting of bounding boxes which contain smaller bounding boxes.
+            This speeds up the rendering process because if a ray does not intersect the bounding box containing a primitive, it cannot possibly intersect that primitive.
+            When a ray misses a bounding box, the algorithm no longer needs to test its intersection with any primitive within this bounding box. The BVH is structured like a tree:
+            each box node has a left child and a right child. To create the left child and right child, I first split the bounding box along the median of its longest axis. If either child box
+            contained no primitives, I recursively moved the split to the halfway point of the side which contained all the primitives. To detect ray intersection with a bounding box,
+            I did something similar to the triangle test from the rasterizer project. A box can be formed from 6 intersecting planes: I checked whether the ray's intersections with those planes formed a valid intersection.
+            In other words, I checked whether the maximum of the minima was equal to the minimum of the maxima.
+        </p>
+        <p> To test the performance of the project with and without the BVH, I rendered cow.dae and teapot.dae at 460 by 360 pixels. Here are my results: </p>
+        <div align="center">
+            <table style="width=100%">
+                <tr>
+                    <td align="middle">
+                        <img src="images/1.png" width="480px" />
+                </tr>
+                <tr>
+                    <td align="middle">
+                        <img src="images/2.png" width="480px" />
+                        <figcaption align="middle">With BVH: rendering takes around 0.1 seconds.</figcaption>
+                </tr>
+                <tr>
+                    <td align="middle">
+                        <img src="images/3.png" width="480px" />
+                </tr>
+                <tr>
+                    <td align="middle">
+                        <img src="images/4.png" width="480px" />
+                        <figcaption align="middle">Without BVH: rendering takes 40 to 90 seconds.</figcaption>
+                </tr>
+            </table>
+            <p> Here are some large files that would be very slow to render without the BVH: </p>
+            <table style="width=100%">
+                <tr>
+                    <td align="middle">
+                        <img src="images/maxplanck.png" width="480px" />
+                </tr>
+                <tr>
+                    <td align="middle">
+                        <img src="images/lucy.png" width="480px" />
+                </tr>
+            </table>
+        </div>
 
+        <h2 align="middle">Part 3: Direct Illumination</h2>
+        <p> This was the most labor-intensive part of the project: implementing shading using ray tracing instead of surface normals.
+            There are two ways to do this: uniform hemisphere sampling takes a Monte Carlo integration over a hemisphere of possible rays around a point on a surface,
+            essentially choosing a random angle within this hemisphere such that each has the same probability, then sending a ray out from that point at the same angle to see
+            if any object is blocking that point from the light. If not, it uses Lambert's cosine law to estimate the radiance at that point using the irradiance.
+            The other way of doing this is importance sampling. Importance sampling is very similar to uniform sampling, but instead of sending rays out randomly back towards the light,
+            the algorithm sends them out directly towards the light; this allows for point lights with an infinitely small radius, and leads to less grainy renders.
+        </p>
+        <div align="center">
+            <table style="width=100%">
+                <tr>
+                    <td>
+                        <img src="images/spheres_direct.png" align="middle" width="400px"/>
+                        <figcaption align="middle">Direct lighting only.</figcaption>
+                    </td>
+                    <td>
+                        <img src="images/spheres_indirect2.png" align="middle" width="400px"/>
+                        <figcaption align="middle">Indirect lighting only.</figcaption>
+                    </td>
+                </tr>
+                <br>
+            </table>
+            <table style="width=100%">
+                <tr>
+                    <td>
+                        <img src="images/bunnyLL1.png" align="middle" width="400px"/>
+                        <figcaption align="middle">1 light ray.</figcaption>
+                    </td>
+                    <td>
+                        <img src="images/bunnyLL4.png" align="middle" width="400px"/>
+                        <figcaption align="middle">4 light rays.</figcaption>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <img src="images/bunnyLL16.png" align="middle" width="400px"/>
+                        <figcaption align="middle">16 light rays.</figcaption>
+                    </td>
+                    <td>
+                        <img src="images/bunnyLL64.png" align="middle" width="400px"/>
+                        <figcaption align="middle">64 light rays.</figcaption>
+                    </td>
+                </tr>
+            </table>
+        </div>
 
-    <h2 align="middle">A Few Notes On Webpages</h2>
-        <p>Here are a few problems students have encountered in the past. You will probably encounter these problems at some point, so don't wait until right before the deadline to check that everything is working. Test your website on the instructional machines early!</p>
-        <ul>
-        <li>Your main report page should be called index.html.</li>
-        <li>Be sure to include and turn in all of the other files (such as images) that are linked in your report!</li>
-        <li>Use only <em>relative</em> paths to files, such as <pre>"./images/image.jpg"</pre>
-        Do <em>NOT</em> use absolute paths, such as <pre>"/Users/student/Desktop/image.jpg"</pre></li>
-        <li>Pay close attention to your filename extensions. Remember that on UNIX systems (such as the instructional machines), capitalization matters. <pre>.png != .jpeg != .jpg != .JPG</pre>
-        <li>Be sure to adjust the permissions on your files so that they are world readable. For more information on this please see this tutorial: <a href="http://www.grymoire.com/Unix/Permissions.html">http://www.grymoire.com/Unix/Permissions.html</a></li>
-        <li>And again, test your website on the instructional machines early!</li>
+        <h2 align="middle">Part 4: Global Illumination</h2>
+        <p>The key factor in global illumination is the at_least_one_bounce_radiance function, which uses a technique called Russian Roulette to allow rays to bounce around the scene and reflect
+            off objects an infinite number of times, but makes it more and more unlikely each time that the ray will reflect instead of terminating - thus the name.
+        </p>
+        <div align="center">
+            <table style="width=100%">
+                <tr>
+                    <td>
+                        <img src="images/bunny40.png" align="middle" width="400px"/>
+                        <figcaption align="middle">max_ray_depth = 0.</figcaption>
+                    </td>
+                    <td>
+                        <img src="images/bunny41.png" align="middle" width="400px"/>
+                        <figcaption align="middle">max_ray_depth = 1.</figcaption>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <img src="images/bunny42.png" align="middle" width="400px"/>
+                        <figcaption align="middle">max_ray_depth = 2.</figcaption>
+                    </td>
+                    <td>
+                        <img src="images/bunny43.png" align="middle" width="400px"/>
+                        <figcaption align="middle">max_ray_depth = 3.</figcaption>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <img src="images/bunny4100.png" align="middle" width="400px"/>
+                        <figcaption align="middle">max_ray_depth = 100.</figcaption>
+                    </td>
+                </tr>
+            </table>
+            <table style="width=100%">
+                <tr>
+                    <td>
+                        <img src="images/bunny51.png" align="middle" width="400px"/>
+                        <figcaption align="middle">1 sample/pixel.</figcaption>
+                    </td>
+                    <td>
+                        <img src="images/bunny52.png" align="middle" width="400px"/>
+                        <figcaption align="middle">2 samples/pixel.</figcaption>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <img src="images/bunny54.png" align="middle" width="400px"/>
+                        <figcaption align="middle">4 samples/pixel.</figcaption>
+                    </td>
+                    <td>
+                        <img src="images/bunny58.png" align="middle" width="400px"/>
+                        <figcaption align="middle">8 samples/pixel.</figcaption>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <img src="images/bunny516.png" align="middle" width="400px"/>
+                        <figcaption align="middle">16 samples/pixel.</figcaption>
+                    </td>
+                    <td>
+                        <img src="images/bunny564.png" align="middle" width="400px"/>
+                        <figcaption align="middle">64 samples/pixel.</figcaption>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <img src="images/bunny51024.png" align="middle" width="400px"/>
+                        <figcaption align="middle">1024 samples/pixel.</figcaption>
+                    </td>
+                </tr>
+
+            </table>
+        </div>
+
+        h2 align="middle">Part 5: Adaptive Sampling </h2>
+        <p>This part was a fairly simple optimization to make rendering quicker. The idea behind adaptive sampling is that the algorithm
+            uses the mean and variance of the samples at a given pixel to test how quickly the pixel's radiance is converging. Once the algorithm
+            has determined the illuminance of the pixel within a 95% confidence interval, it ceases to take more samples from that pixel.
+        </p>
+        <div align="center">
+            <table style="width=100%">
+                <tr>
+                    <td align="middle">
+                        <img src="images/bunny.png" width="480px" />
+                        <figcaption align="middle">My final bunny render with 2048 samples/pixel.</figcaption>
+                </tr>
+            </table>
+        </div>
 </div>
 </body>
 </html>

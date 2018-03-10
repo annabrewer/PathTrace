@@ -12,28 +12,106 @@ BBox Triangle::get_bbox() const {
 
   Vector3D p1(mesh->positions[v1]), p2(mesh->positions[v2]), p3(mesh->positions[v3]);
   BBox bb(p1);
-  bb.expand(p2); 
+  bb.expand(p2);
   bb.expand(p3);
   return bb;
 
 }
 
 bool Triangle::intersect(const Ray& r) const {
-  
   // Part 1, Task 3: implement ray-triangle intersection
-  Vector3D p1(mesh->positions[v1]), p2(mesh->positions[v2]), p3(mesh->positions[v3]);
+  Vector3D p0(mesh->positions[v1]), p1(mesh->positions[v2]), p2(mesh->positions[v3]);
 
+  //we're finding the ray's t-value at the hit point
+  //moller trumbore ////////
+  Vector3D e1 = p1 - p0;
+  Vector3D e2 = p2 - p0;
+  Vector3D s = r.o - p0;
+  Vector3D s1 = cross(r.d, e2);
+  Vector3D s2 = cross(s, e1);
+
+  double step1x = dot(s2, e2);
+  double step1y = dot(s1, s);
+  double step1z = dot(s2, r.d);
+
+  Vector3D step1a = Vector3D(step1x, step1y, step1z);
+
+  Vector3D step1b = (1.0/dot(s1, e1)) * step1a;
+
+  double t = step1b.x;
+  double b = step1b.y;
+  double g = step1b.z;
+
+  double a = (1-b-g);
+
+  Vector3D step2 = a*p0 + b*p1 + g*p2;
+  //////////////////////////
+
+  //printf("ABG lol %f %f %f \n", a, b, g);
+
+  if (r.min_t <= t && t <= r.max_t && 0 <= a && a <= 1 && 0 <= b && b <= 1 && 0 <= g && g <= 1) {
+    r.max_t = t;
+    return true;
+  }
   return false;
 }
 
 bool Triangle::intersect(const Ray& r, Intersection *isect) const {
-  
-  // Part 1, Task 3: 
+
+  // Part 1, Task 3:
   // implement ray-triangle intersection. When an intersection takes
   // place, the Intersection data should be updated accordingly
-  Vector3D p1(mesh->positions[v1]), p2(mesh->positions[v2]), p3(mesh->positions[v3]);
-  Vector3D n1(mesh->normals[v1]), n2(mesh->normals[v2]), n3(mesh->normals[v3]);
-  
+  Vector3D p0(mesh->positions[v1]), p1(mesh->positions[v2]), p2(mesh->positions[v3]);
+  Vector3D n0(mesh->normals[v1]), n1(mesh->normals[v2]), n2(mesh->normals[v3]);
+
+  //moller trumbore ////////
+  Vector3D e1 = p1 - p0;
+  Vector3D e2 = p2 - p0;
+  Vector3D s = r.o - p0;
+  Vector3D s1 = cross(r.d, e2);
+  Vector3D s2 = cross(s, e1);
+
+  double step1x = dot(s2, e2);
+  double step1y = dot(s1, s);
+  double step1z = dot(s2, r.d);
+
+  Vector3D step1a = Vector3D(step1x, step1y, step1z);
+
+  Vector3D step1b = (1.0/dot(s1, e1)) * step1a;
+
+  double t = step1b.x;
+  double b = step1b.y;
+  double g = step1b.z;
+
+  double a = (1-b-g);
+
+  Vector3D step2 = a*p0 + b*p1 + g*p2;
+  //////////////////////////
+
+  //printf("ABG %f %f %f \n", a, b, g);
+    /*if (r.min_t <= t && t <= r.max_t) {
+        printf("minmax");
+    }
+    if (0 <= a && a <= 1) {
+        printf("a");
+    }
+    if (0 <= b && b <= 1) {
+        printf("b");
+    }
+    if (0 <= g && g <= 1) {
+        printf("c");
+    }*/
+
+  if (r.min_t <= t && t <= r.max_t && 0 <= a && a <= 1 && 0 <= b && b <= 1 && 0 <= g && g <= 1) {
+    //printf("BARY %f %f %f \n", a, b, g);
+    r.max_t = t;
+    isect->t = t;
+    isect->n = a*n0 + b*n1 + g*n2;
+    isect->primitive = this;
+    isect->bsdf = this->get_bsdf();
+    //printf("intersected");
+    return true;
+  }
   return false;
 }
 
