@@ -137,7 +137,9 @@
 
         <h2 align="middle">Part 4: Global Illumination</h2>
         <p>The key factor in global illumination is the at_least_one_bounce_radiance function, which uses a technique called Russian Roulette to allow rays to bounce around the scene and reflect
-            off objects an infinite number of times, but makes it more and more unlikely each time that the ray will reflect instead of terminating - thus the name.
+            off objects an infinite number of times, but makes it more and more unlikely each time that the ray will reflect instead of terminating - thus the name. Specifically, it first sets the final
+            radiance to the one_bounce_radiance, then randomly decides with a certain probability (0.65 in this case) whether or not to terminate. If it does not terminate, it creates a ray from the current
+            hit point and recursively calls itself with that ray, increasing the probability of termination by dividing by that probability.
         </p>
         <div align="center">
             <table style="width=100%">
@@ -209,7 +211,7 @@
             </table>
         </div>
 
-        h2 align="middle">Part 5: Adaptive Sampling </h2>
+        <h2 align="middle">Part 5: Adaptive Sampling </h2>
         <p>This part was a fairly simple optimization to make rendering quicker. The idea behind adaptive sampling is that the algorithm
             uses the mean and variance of the samples at a given pixel to test how quickly the pixel's radiance is converging. Once the algorithm
             has determined the illuminance of the pixel within a 95% confidence interval, it ceases to take more samples from that pixel.
@@ -220,6 +222,11 @@
                     <td align="middle">
                         <img src="images/bunny.png" width="480px" />
                         <figcaption align="middle">My final bunny render with 2048 samples/pixel.</figcaption>
+                    </td>
+                    <td align="middle">
+                        <img src="images/bunnyrate.png" align="middle" width="400px"/>
+                        <figcaption align="middle">Sample rate for the bunny.</figcaption>
+                    </td>
                 </tr>
             </table>
         </div>
