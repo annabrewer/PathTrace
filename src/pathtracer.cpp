@@ -33,7 +33,7 @@ PathTracer::PathTracer(size_t ns_aa,
                        float max_tolerance,
                        HDRImageBuffer* envmap,
                        bool direct_hemisphere_sample,
-                       string filename) {
+                       string filename, int sample_type) {
   state = INIT,
   this->ns_aa = ns_aa;
   this->max_ray_depth = max_ray_depth;
@@ -45,6 +45,7 @@ PathTracer::PathTracer(size_t ns_aa,
   this->maxTolerance = max_tolerance;
   this->direct_hemisphere_sample = direct_hemisphere_sample;
   this->filename = filename;
+  this->sampleType = sample_type;
 
   if (envmap) {
     this->envLight = new EnvironmentLight(envmap);
@@ -56,7 +57,21 @@ PathTracer::PathTracer(size_t ns_aa,
   scene = NULL;
   camera = NULL;
 
-  gridSampler = new UniformGridSampler2D();
+    if (sampleType == 0) {
+        gridSampler = new UniformGridSampler2D();
+    }
+    else if (sampleType == 1) {
+        gridSampler = new JitterGridSampler2D();
+    }
+    else if (sampleType == 2) {
+        printf("howdy");
+        gridSampler = new HammersleyGridSampler2D();
+    }
+    else {
+        gridSampler = new HaltonGridSampler2D();
+    }
+
+
   hemisphereSampler = new UniformHemisphereSampler3D();
 
   show_rays = true;
@@ -100,6 +115,7 @@ void PathTracer::set_scene(Scene *scene) {
   build_accel();
 
   if (has_valid_configuration()) {
+      printf("pleaseee");
     state = READY;
   }
 }
@@ -133,6 +149,10 @@ void PathTracer::set_frame_size(size_t width, size_t height) {
 }
 
 bool PathTracer::has_valid_configuration() {
+   // printf("hello");
+   if (!scene ) {
+        printf("nice");
+    }
   return scene && camera && gridSampler && hemisphereSampler &&
          (!sampleBuffer.is_empty());
 }
@@ -774,8 +794,14 @@ Spectrum PathTracer::raytrace_pixel(size_t x, size_t y) {
 
   //printf("come onn where am i segfaulting");
 
+    //printf("whyyyy");
+
   double num_samples = ns_aa;            // total samples to evaluate
   Vector2D origin = Vector2D(x,y);    // bottom left corner of the pixel
+
+    int rowLen = sqrt(num_samples);
+
+
 
   Spectrum sum = Spectrum(0, 0, 0);
 
@@ -794,9 +820,15 @@ Spectrum PathTracer::raytrace_pixel(size_t x, size_t y) {
     double var = 0;
     double conv = INFINITY;
 
-    for(int i = 1; i < num_samples; i++) {
+    for(int i = 1; i <= num_samples; i++) {
 
-        Vector2D v = gridSampler->get_sample();
+        //printf("oii");
+
+        Vector2D v = gridSampler->get_sample(i,rowLen);
+
+        //printf("%f %f \n", v.x, v.y);
+
+        //printf("hello");
         double d = v.x;
         double e = v.y;
         double x_small = (x + d) / sampleBuffer.w;
@@ -846,6 +878,7 @@ void PathTracer::raytrace_tile(int tile_x, int tile_y,
                                int tile_w, int tile_h) {
 
   //printf("come onn where am i segfaulting 2");
+    printf("wassup");
 
   size_t w = sampleBuffer.w;
   size_t h = sampleBuffer.h;

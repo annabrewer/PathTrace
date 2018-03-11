@@ -68,7 +68,8 @@ class PathTracer {
              float max_tolerance = 0.05f,
              HDRImageBuffer* envmap = NULL,
              bool direct_hemisphere_sample = false,
-             string filename = "");
+             string filename = "",
+             int sample_type = 0);
 
   /**
    * Destructor.
@@ -285,6 +286,8 @@ class PathTracer {
   bool show_rays;                         ///< show rays from raylog
   
   std::string filename;
+  int sampleType;
+
 };
 
 }  // namespace CGL

@@ -57,7 +57,14 @@ struct AppConfig {
     pathtracer_max_tolerance = 0.05f;
     pathtracer_direct_hemisphere_sample = false;
 
+
     pathtracer_filename = "";
+
+    pathtracer_sample_type = 0;
+      //0 is uniform
+      //1 is jitter
+      //2 is hammersley
+      //3 is halton
   }
 
   size_t pathtracer_ns_aa;
@@ -77,6 +84,7 @@ struct AppConfig {
   bool pathtracer_direct_hemisphere_sample;
 
   string pathtracer_filename;
+  int pathtracer_sample_type;
 };
 
 class Application : public Renderer {

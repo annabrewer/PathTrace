@@ -32,7 +32,8 @@ Application::Application(AppConfig config, bool gl) {
     config.pathtracer_max_tolerance,
     config.pathtracer_envmap,
     config.pathtracer_direct_hemisphere_sample,
-    config.pathtracer_filename
+    config.pathtracer_filename,
+    config.pathtracer_sample_type
   );
   filename = config.pathtracer_filename;
 }

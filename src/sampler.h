@@ -23,6 +23,7 @@ class Sampler2D {
    * Take a point sample of the unit square
    */
   virtual Vector2D get_sample() const = 0;
+  virtual Vector2D get_sample(int index, int sideLength) const = 0;
 
 }; // class Sampler2D
 
@@ -50,10 +51,11 @@ class Sampler3D {
  */
 class UniformGridSampler2D : public Sampler2D {
  public:
-
-  Vector2D get_sample() const;
+    Vector2D get_sample() const;
+  Vector2D get_sample(int index, int sideLength) const;
 
 }; // class UniformSampler2D
+
 
 /**
  * A Sampler3D implementation with uniform distribution on unit hemisphere
@@ -63,7 +65,10 @@ class UniformHemisphereSampler3D : public Sampler3D {
 
   Vector3D get_sample() const;
 
-}; // class UniformHemisphereSampler3D
+};
+
+
+// class UniformHemisphereSampler3D
 
 /**
  * A Sampler3D implementation with cosine-weighted distribution on unit
@@ -82,7 +87,22 @@ class CosineWeightedHemisphereSampler3D : public Sampler3D {
  * TODO (extra credit) :
  * Jittered sampler implementations
  */
+    class JitterGridSampler2D : public Sampler2D {
+        public:
+        Vector2D get_sample() const;
+        Vector2D get_sample(int index, int sideLength) const;
+    };
+    class HammersleyGridSampler2D : public Sampler2D {
+        public:
+        Vector2D get_sample() const;
+        Vector2D get_sample(int index, int sideLength) const;
 
+    };
+    class HaltonGridSampler2D : public Sampler2D {
+        public:
+        Vector2D get_sample() const;
+        Vector2D get_sample(int index, int sideLength) const;
+    };
 } // namespace CGL
 
 #endif //CGL_SAMPLER_H

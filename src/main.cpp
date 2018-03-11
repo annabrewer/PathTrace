@@ -77,7 +77,7 @@ int main( int argc, char** argv ) {
   bool write_to_file = false;
   size_t w = 0, h = 0, x = -1, y = 0, dx = 0, dy = 0;
   string filename, cam_settings = "";
-  while ( (opt = getopt(argc, argv, "s:l:t:m:e:h:H:f:r:c:a:p:")) != -1 ) {  // for each option...
+  while ( (opt = getopt(argc, argv, "s:l:t:m:e:h:H:f:r:c:a:p:J:L:Z")) != -1 ) {  // for each option...
     switch ( opt ) {
       case 'f':
           write_to_file = true;
@@ -105,6 +105,7 @@ int main( int argc, char** argv ) {
           config.pathtracer_num_threads = atoi(optarg);
           break;
       case 'm':
+          //printf("ffs");
           config.pathtracer_max_ray_depth = atoi(optarg);
           break;
       case 'e':
@@ -120,6 +121,20 @@ int main( int argc, char** argv ) {
           break;
       case 'H':
           config.pathtracer_direct_hemisphere_sample = true;
+          optind--;
+          break;
+      case 'J':
+          config.pathtracer_sample_type = 2;
+          optind--;
+          break;
+      case 'Z':
+          //printf("ffs");
+          //int a = atoi(optarg);
+          config.pathtracer_sample_type = 2;
+          optind--;
+          break;
+      case 'L':
+          config.pathtracer_sample_type = 3;
           optind--;
           break;
       default:
