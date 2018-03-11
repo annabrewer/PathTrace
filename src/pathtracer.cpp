@@ -680,8 +680,8 @@ Spectrum PathTracer::at_least_one_bounce_radiance(const Ray&r, const Intersectio
   Vector3D w_out = w2o * (-r.d);
 
     //for indirect ONLY
-    Spectrum L_out;
-  //Spectrum L_out = one_bounce_radiance(r, isect);
+    //Spectrum L_out;
+  Spectrum L_out = one_bounce_radiance(r, isect);
 
 
   // TODO (Part 4.2): Here is where your code for sampling the BSDF,
@@ -697,12 +697,12 @@ Spectrum PathTracer::at_least_one_bounce_radiance(const Ray&r, const Intersectio
     if (r.depth == max_ray_depth) {
         cp = 1;
         //for indirect ONLY
-        L_out = Spectrum(0, 0, 0);
+        //L_out = Spectrum(0, 0, 0);
     }
     else {
         cp = 0.65;
         //for indirect ONLY
-        L_out = one_bounce_radiance(r, isect);
+        //L_out = one_bounce_radiance(r, isect);
     }
 
     if (r.depth > 1 && coin_flip(cp)) {
@@ -791,12 +791,23 @@ Spectrum PathTracer::raytrace_pixel(size_t x, size_t y) {
     double s1 = 0;
     double s2 = 0;
     double u = 0;
-    double v = 0;
+    double var = 0;
     double conv = INFINITY;
 
     for(int i = 1; i < num_samples; i++) {
+
+        Vector2D v = gridSampler->get_sample();
+        double d = v.x;
+        double e = v.y;
+        double x_small = (x + d) / sampleBuffer.w;
+        double y_small = (y + e) / sampleBuffer.h;
+        Ray r = camera->generate_ray(x_small, y_small);
+        r.depth = max_ray_depth;
+        Spectrum rad = est_radiance_global_illumination(r);
+        sum += rad;
+
       counter++;
-      double xk = sum.illum();
+      double xk = rad.illum();
       s1 += xk;
       s2 += xk*xk;
 
@@ -805,44 +816,25 @@ Spectrum PathTracer::raytrace_pixel(size_t x, size_t y) {
           double n = i*1.0;
 
           u = s1 / n;
-          v = (1.0 / (n - 1)) * (s2 - (s1*s1) / n);
-          conv = 1.96 * (sqrt(v)/sqrt(n));
+          var = (1.0 / (n - 1)) * (s2 - (s1*s1) / n);
+          conv = 1.96 * (sqrt(var)/sqrt(n));
           counter = 0;
 
           if (conv <= maxTolerance * u) {
               int ns = n;
-              sum = sum / (1.0*i);
-              sampleCountBuffer[x + frameBuffer.w * y] = ns;
+              //printf("\n %f %d \n", n, ns);
+              sum = sum / n;
+              sampleCountBuffer[x + sampleBuffer.w * y] = ns;
               //printf("%d \n", ns);
               return sum;
           }
       }
 
-        /*if (conv > (maxTolerance * u)) {*/
-            /*printf("conv %f \n ", conv);
-            printf("max %f \n", maxTolerance);*/
-            //random offset from
-        //printf("hello");
-            Vector2D v = gridSampler->get_sample();
-            double d = v.x;
-            double e = v.y;
-            double x_small = (x + d) / sampleBuffer.w;
-            double y_small = (y + e) / sampleBuffer.h;
-            Ray r = camera->generate_ray(x_small, y_small);
-            r.depth = max_ray_depth;
-            sum += est_radiance_global_illumination(r);
-            //printf("%f %f %f \n", sum.r, sum.g, sum.b);
-       // }
-        /*else {
-            //printf("wussup");
-            num_samples = i;
-            break;
-        }*/
   }
-
     int ns = num_samples;
+    //printf("\n %f %d \n", num_samples, ns);
     sampleCountBuffer[x + frameBuffer.w * y] = ns;
-  sum = sum / (1.0*num_samples);
+  sum = sum / num_samples;
 
 
   //printf("SUM%f %f %f \n", sum.r, sum.g, sum.b);
