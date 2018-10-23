@@ -1,3 +1,3 @@
-# Assignment 3-1: Raytracer
+# PathTrace
 
-https://cs184.eecs.berkeley.edu/article/14
+https://annabrewer.github.io/PathTrace/
