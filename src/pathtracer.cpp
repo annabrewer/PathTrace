@@ -595,10 +595,6 @@ Spectrum PathTracer::estimate_direct_lighting_importance(const Ray& r, const Int
   const Vector3D& w_out = w2o * (-r.d);
   Spectrum L_out;
 
-  //printf(" \n woohoo \n");
-
-    //int num_samples = scene->lights.size() * ns_area_light;
-
   // TODO (Part 3): Here is where your code for looping over scene lights goes
   // COMMENT OUT `normal_shading` IN `est_radiance_global_illumination` BEFORE YOU BEGIN
 
@@ -609,7 +605,7 @@ Spectrum PathTracer::estimate_direct_lighting_importance(const Ray& r, const Int
         //check if delta light
         //printf("\n hello \n");
 
-        if (s->is_delta_light()) {
+        /*if (s->is_delta_light()) {
           //take 1 sample
             Spectrum rad = s->sample_L(hit_p, &wi, &distToLight, &pdf);
             Vector3D w_in = w2o * wi;
@@ -624,10 +620,16 @@ Spectrum PathTracer::estimate_direct_lighting_importance(const Ray& r, const Int
                 Spectrum add = (rad * b * cos_theta(w_in)) / pdf;
                 L_out += add;
             }
+        }*/
+        int loops;
+        if (s->is_delta_light()) {
+            loops = 1;
         }
         else {
+            loops = ns_area_light;
+        }
             Spectrum L;
-            for (int i = 0; i < ns_area_light; i++) {
+            for (int i = 0; i < loops; i++) {
                 //get incoming vector
                 //Spectrum s =  isect.bsdf->sample_f(w_out, wi, pdf);
 
@@ -650,17 +652,16 @@ Spectrum PathTracer::estimate_direct_lighting_importance(const Ray& r, const Int
                     if (!inter) {
                         //bsdf at point
                         Spectrum b = isect.bsdf->f(w_out, w_in);
-
                         Spectrum add = (rad * b * cos_theta(w_in)) / pdf;
                         L += add;
                     }
                 }
             }
-            L = L / (1.0 * ns_area_light);
+            L = L / (1.0 * loops);
             L_out += L;
         }
-        L_out = L_out / scene->lights.size();
-    }
+    //L_out = L_out / scene->lights.size();
+
   //printf("\n L final 1.5 %f %f %f \n", L_out.r, L_out.g, L_out.b);
   return L_out;
 }
